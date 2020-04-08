@@ -34,12 +34,13 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
       ],
     },
-    hot: true,
+    hot: true, // 启用 webpack 的模块热替换特性
     contentBase: false, // since we use CopyWebpackPlugin.
     compress: true,
-    host: HOST || config.dev.host,
+    host: HOST || config.dev.host, // 用于配置DevServer服务器监听的地址
     port: PORT || config.dev.port,
-    open: config.dev.autoOpenBrowser,
+    // open: config.dev.autoOpenBrowser,
+    open: true, // 启动项目时，自动打开默认浏览器
     overlay: config.dev.errorOverlay
       ? { warnings: false, errors: true }
       : false,
@@ -49,7 +50,9 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     watchOptions: {
       poll: config.dev.poll,
     },
+    // 提供在服务器内部所有其他中间件之前执行自定义中间件的能力。这可以用来定义自定义处理程序
     before(app) {
+      // webpack内置了express，app相当于使用express时的const app = express()
       app.get('/api/getTopBanner', function (req, res) {
         const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
         const jumpPrefixMap = {
@@ -65,15 +68,17 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           },
           params: req.query
         }).then((response) => {
+          // 处理返回的数据,以{code: '', data: { slider: {}}}的形式返回
+          // console.log(response.data);
           response = response.data
           if (response.code === 0) {
             const slider = []
             const content = response.focus.data && response.focus.data.content
-            const jumpPrefix = jumpPrefixMap[item.type || 10002]
             if (content) {
               for (let i = 0; i < content.length; i++) {
                 const item = content[i]
                 const sliderItem = {}
+                const jumpPrefix = jumpPrefixMap[item.type || 10002]
                 sliderItem.id = item.id
                 sliderItem.linkUrl = jumpPrefix + item.jump_info.url + '.html'
                 sliderItem.picUrl = item.pic_info.url
