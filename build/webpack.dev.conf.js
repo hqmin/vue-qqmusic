@@ -26,7 +26,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   // cheap-module-eval-source-map is faster for development
   devtool: config.dev.devtool,
 
-  // these devServer options should be customized in /config/index.js
+  // these devServer options should be customized in /config/index.ts
   devServer: {
     clientLogLevel: 'warning',
     historyApiFallback: {
@@ -52,6 +52,8 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     },
     // 提供在服务器内部所有其他中间件之前执行自定义中间件的能力。这可以用来定义自定义处理程序
     before(app) {
+      app.use(bodyParser.urlencoded({extended: true}));
+      const querystring = require('querystring');
       // webpack内置了express，app相当于使用express时的const app = express()
       app.get('/api/getTopBanner', function (req, res) {
         const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
@@ -98,6 +100,73 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           console.log(e)
         })
       });
+
+      // 获取歌单列表数据
+      app.get('/api/getDiscList', function (req, res) {
+        const url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          // 使用json方法将返回的数据输出给浏览器
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      });
+
+      // 获取歌手列表数据
+      app.get('/api/getSingerList', function (req, res) {
+        const url = 'https://c.y.qq.com/v8/fcg-bin/v8.fcg';
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          // 使用json方法将返回的数据输出给浏览器
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      });
+
+      // 获取歌手详情页数据
+      app.get('/api/getSingerDetail', function (req, res) {
+        const url = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_singer_track_cp.fcg';
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          // 使用json方法将返回的数据输出给浏览器
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      });
+
+      app.post('/api/getPurlUrl', bodyParser.json(), function (req, res) {
+        const url = 'https://u.y.qq.com/cgi-bin/musicu.fcg'
+        axios.post(url, req.body, {
+          headers: {
+            referer: 'https://y.qq.com/',
+            origin: 'https://y.qq.com',
+            'Content-type': 'application/x-www-form-urlencoded'
+          }
+        }).then((response) => {
+          res.json(response.data)
+        }).catch((e) => {
+          console.log(e)
+        })
+      });
+
     }
   },
   plugins: [
